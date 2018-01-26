@@ -25,9 +25,7 @@
    <div id="result"></div>
 <script>
 function signInCallback(authResult) {
-	console.log('Hi1111111111111')
   if (authResult['code']) {
-  	console.log('Hi22222222222')
     // Hide the sign-in button now that the user is authorized
     $('#signinButton').attr('style', 'display: none');
     // Send the one-time-use code to the server, if the server responds, write a 'login successful' message to the web page and then redirect back to the main restaurants page

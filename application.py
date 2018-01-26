@@ -112,13 +112,43 @@ def gconnect():
     print "done!"
     return output
 
+@app.route('/gdisconnect')
+def gdisconnect():
+    access_token = login_session.get('access_token')
+    if access_token is None:
+        print 'Access Token is None'
+        response = make_response(json.dumps('Current user not connected.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    print 'In gdisconnect access token is %s', access_token
+    print 'User name is: '
+    print login_session['username']
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session['access_token']
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[0]
+    print 'result is '
+    print result
+    if result['status'] == '200':
+        del login_session['access_token']
+        del login_session['gplus_id']
+        del login_session['username']
+        del login_session['email']
+        del login_session['picture']
+        response = make_response(json.dumps('Successfully disconnected.'), 200)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    else:
+        response = make_response(json.dumps('Failed to revoke token for given user.', 400))
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
 @app.route('/')
 @app.route('/index')
 def mainPage():
+	logged = 'username' in login_session 
 	leagues = session.query(League).all()
 	latest_teams = session.query(Team).order_by(Team.id.desc()).limit(2)
-	return render_template('main.html', leagues=leagues, teams = latest_teams)
+	return render_template('main.html', leagues=leagues, teams = latest_teams, logged=logged)
 
 @app.route('/json')
 def jsonTeams():
@@ -128,6 +158,7 @@ def jsonTeams():
 
 @app.route('/league/<int:league_id>')
 def leaguePage(league_id):
+	logged = 'username' in login_session
 	league = session.query(League).filter_by(id = league_id).first()
 	teams = session.query(Team).filter_by(league_id = league_id).all()
 	print (league.name)
@@ -135,8 +166,9 @@ def leaguePage(league_id):
 
 @app.route('/team/<int:team_id>')
 def teamPage(team_id):
+	logged = 'username' in login_session
 	team = session.query(Team).filter_by(id = team_id).first()
-	return render_template('team_page.html' , team = team )
+	return render_template('team_page.html', logged=logged , team = team )
 
 @app.route('/new_team', methods = ['GET','POST'])
 def newTeam():
@@ -146,6 +178,9 @@ def newTeam():
 		session.commit()
 		return redirect(url_for('mainPage'))
 	else :
+		logged = 'username' in login_session
+		if not logged :
+			return redirect(url_for('showLogin'))
 		leagues = session.query(League).all()
 		return render_template('new_team.html', leagues=leagues)
 
@@ -161,6 +196,9 @@ def editTeam(team_id):
 		session.commit()
 		return redirect(url_for('teamPage', team_id = team_id))
 	else :
+		logged = 'username' in login_session
+		if not logged :
+			return redirect(url_for('showLogin'))
 		leagues = session.query(League).all()
 		return render_template('edit_team.html',leagues = leagues, team = team)
 
@@ -175,8 +213,12 @@ def deleteTeam(team_id):
 		session.delete(team)
 		session.commit()
 		return redirect(url_for('mainPage'))
-	else:
-		return render_template('delete_team.html', team = team )
+	else :
+		logged = 'username' in login_session
+		if not logged :
+			return redirect(url_for('showLogin'))
+		leagues = session.query(League).all()
+		return render_template('edit_team.html',leagues = leagues, team = team)
 
 
 

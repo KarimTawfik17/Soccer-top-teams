@@ -12,6 +12,10 @@
 	<article>
 		<h1>{{ team.name }}</h1>
 		<p>{{ team.info }}</p>
+		{% if logged : %}
+		<h2>Edit</h2>
+		<h2>Delete</h2>
+		{% endif %}
 		
 	</article>
 
