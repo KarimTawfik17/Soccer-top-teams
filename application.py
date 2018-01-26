@@ -27,9 +27,8 @@ app = Flask(__name__)
 app.secret_key = ''.join(random.choice(
     string.ascii_uppercase + string.digits) for i in range(48))
 
+
 # default route for logging page
-
-
 @app.route('/login')
 def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
@@ -159,9 +158,9 @@ def gdisconnect():
             'Failed to revoke token for given user.', 400))
         response.headers['Content-Type'] = 'application/json'
         return response
+
+
 # default route for main page
-
-
 @app.route('/')
 @app.route('/index')
 def mainPage():
@@ -171,17 +170,15 @@ def mainPage():
     return render_template('main.html', leagues=leagues,
                            teams=latest_teams, logged=logged)
 
+
 # api endpoint responds with json format
-
-
 @app.route('/json')
 def jsonTeams():
     teams = session.query(Team).all()
     return(jsonify(AllTeams=[team.serialize for team in teams]))
 
+
 # league page
-
-
 @app.route('/league/<int:league_id>')
 def leaguePage(league_id):
     leagues = session.query(League).all()
@@ -190,18 +187,17 @@ def leaguePage(league_id):
     print(league.name)
     return render_template('league_page.html', leagues=leagues,
                            league=league, teams=teams)
+
+
 # team page
-
-
 @app.route('/team/<int:team_id>')
 def teamPage(team_id):
     logged = 'username' in login_session
     team = session.query(Team).filter_by(id=team_id).first()
     return render_template('team_page.html', logged=logged, team=team)
 
+
 # page for adding new team
-
-
 @app.route('/new_team', methods=['GET', 'POST'])
 def newTeam():
     if request.method == 'POST':
@@ -218,9 +214,8 @@ def newTeam():
         leagues = session.query(League).all()
         return render_template('new_team.html', leagues=leagues)
 
+
 # page for editing team
-
-
 @app.route('/edit_team/<int:team_id>', methods=['GET', 'POST'])
 def editTeam(team_id):
     team = session.query(Team).filter_by(id=team_id).first()

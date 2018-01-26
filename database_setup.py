@@ -6,12 +6,14 @@ from sqlalchemy.orm import relationship
 Base = declarative_base()
 
 
+# create league table
 class League(Base):
     __tablename__ = 'league'
     name = Column(String(80), nullable=False)
     id = Column(Integer, primary_key=True)
 
 
+# create team table
 class Team(Base):
     __tablename__ = 'team'
     name = Column(String(80), nullable=False)
@@ -20,6 +22,8 @@ class Team(Base):
     league_id = Column(Integer, ForeignKey(League.id))
     league = relationship(League)
 
+
+# add serialization property for json responses
     @property
     def serialize(self):
         return {
