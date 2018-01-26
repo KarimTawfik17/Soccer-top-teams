@@ -2,19 +2,24 @@
 <html>
 <head>
 	<title>delete Team</title>
+<link rel="stylesheet" href="{{url_for('static',filename='header-footer.css')}}">
+<link rel="stylesheet" href="{{url_for('static',filename='forms.css')}}">
+	
 </head>
 <body>
-	<header>
-		<h1><a href="{{url_for('mainPage')}}">Soccer Top Teams</a></h1>
+	<div class="container">
+	<header class="clearifix">
+		<h1 class="title"><a href="{{url_for('mainPage')}}">Soccer Top Teams</a></h1>
 		{% if logged : %}
-		<h2><a href="{{url_for('gdisconnect')}}">logout</a></h2>
+		<h2 class="login-button"><a href="{{url_for('gdisconnect')}}">logout</a></h2>
 		{% else : %}
-		<h2><a href="{{url_for('showLogin')}}">login</a></h2>
+		<h2 class="login-button"><a href="{{url_for('showLogin')}}">login</a></h2>
 		{% endif %}
 	</header>
+	</div>
 	
 	<form action="{{ url_for('deleteTeam', team_id = team.id) }}" method="post">
-		<p>are you sure you want to delete ? <strong> {{team.name}} + {{team.id}} </strong> </p>
+		<p>are you sure you want to delete ? <strong> {{team.name}} </strong> </p>
 		<input type="submit">
 
 	</form>

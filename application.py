@@ -13,6 +13,9 @@ import json
 from flask import make_response
 import requests
 
+
+
+
 engine = create_engine('sqlite:///teams.db')
 Base.metadata.create_all(engine)
 DBSession = sessionmaker(bind=engine)
@@ -20,7 +23,6 @@ session = DBSession()
 
 app = Flask(__name__)
 app.secret_key = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in range(48))
-
 
 @app.route('/login')
 def showLogin():
@@ -74,7 +76,7 @@ def gconnect():
     if result['issued_to'] != '617260085365-f1mpj9c5b5eqggvu87hb3adisje2sidt.apps.googleusercontent.com':
         response = make_response(
             json.dumps("Token's client ID does not match app's."), 401)
-        print "Token's client ID does not match app's."
+        print ("Token's client ID does not match app's.")
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -109,7 +111,7 @@ def gconnect():
     output += login_session['picture']
     output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
-    print "done!"
+    print ("done!")
     return output
 
 @app.route('/gdisconnect')
@@ -219,7 +221,7 @@ def deleteTeam(team_id):
 		if not logged :
 			return redirect(url_for('showLogin'))
 		leagues = session.query(League).all()
-		return render_template('edit_team.html',leagues = leagues, team = team)
+		return render_template('delete_team.html',leagues = leagues, team = team)
 
 
 
