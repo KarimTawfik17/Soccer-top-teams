@@ -80,8 +80,9 @@ def gconnect():
         return response
 
     # Verify that the access token is valid for this app.
-    if result['issued_to'] != '''617260085365-f1mpj9c5b5eqggvu87hb3adisje2sidt
-    .apps.googleusercontent.com''':
+    clientId = ('617260085365-f1mpj9c5b5eqggvu87hb3adisje2sidt' +
+                '.apps.googleusercontent.com')
+    if result['issued_to'] != clientId:
         response = make_response(
             json.dumps("Token's client ID does not match app's."), 401)
         print("Token's client ID does not match app's.")
@@ -138,8 +139,8 @@ def gdisconnect():
     print('In gdisconnect access token is %s', access_token)
     print('User name is: ')
     print(login_session['username'])
-    url = '''https://accounts.google.com
-    /o/oauth2/revoke?token=%s''' % login_session['access_token']
+    url = ('https://accounts.google.com/o/oauth2/revoke?token=%s' %
+           login_session['access_token'])
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
     print('result is ')
