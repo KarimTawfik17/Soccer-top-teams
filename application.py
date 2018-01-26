@@ -1,11 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
+from flask import Flask, render_template
+from flask import request, redirect, url_for, jsonify, flash
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, League, Team
 
 # imports for Authentication & Authorization
-from flask import session as login_session 
-import random, string
+from flask import session as login_session
+import random
+import string
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 import httplib2
@@ -14,21 +16,27 @@ from flask import make_response
 import requests
 
 
-
-
+# prepare sqlalchemy session for database operations
 engine = create_engine('sqlite:///teams.db')
 Base.metadata.create_all(engine)
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+# create new app
 app = Flask(__name__)
-app.secret_key = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in range(48))
+app.secret_key = ''.join(random.choice(
+    string.ascii_uppercase + string.digits) for i in range(48))
+
+# default route for logging page
+
 
 @app.route('/login')
 def showLogin():
-	state = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in range(32))
-	login_session['state'] = state
-	return render_template('login_page.html', STATE =  login_session['state'])
+    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                    for i in range(32))
+    login_session['state'] = state
+    return render_template('login_page.html', STATE=login_session['state'])
+
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
@@ -73,18 +81,20 @@ def gconnect():
         return response
 
     # Verify that the access token is valid for this app.
-    if result['issued_to'] != '617260085365-f1mpj9c5b5eqggvu87hb3adisje2sidt.apps.googleusercontent.com':
+    if result['issued_to'] != '''617260085365-f1mpj9c5b5eqggvu87hb3adisje2sidt
+    .apps.googleusercontent.com''':
         response = make_response(
             json.dumps("Token's client ID does not match app's."), 401)
-        print ("Token's client ID does not match app's.")
+        print("Token's client ID does not match app's.")
         response.headers['Content-Type'] = 'application/json'
         return response
 
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps('Current user is already connected.'),
-                                 200)
+        response = make_response(
+            json.dumps('Current user is already connected.'),
+            200)
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -109,27 +119,32 @@ def gconnect():
     output += '!</h1>'
     output += '<img src="'
     output += login_session['picture']
-    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    output += ''' " style = "width: 300px;
+    height: 300px;border-radius: 150px;-webkit-border-radius: 150px;
+    -moz-border-radius: 150px;"> '''
     flash("you are now logged in as %s" % login_session['username'])
-    print ("done!")
+    print("done!")
     return output
+
 
 @app.route('/gdisconnect')
 def gdisconnect():
     access_token = login_session.get('access_token')
     if access_token is None:
-        print 'Access Token is None'
-        response = make_response(json.dumps('Current user not connected.'), 401)
+        print('Access Token is None')
+        response = make_response(json.dumps(
+            'Current user not connected.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
-    print 'In gdisconnect access token is %s', access_token
-    print 'User name is: '
-    print login_session['username']
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session['access_token']
+    print('In gdisconnect access token is %s', access_token)
+    print('User name is: ')
+    print(login_session['username'])
+    url = '''https://accounts.google.com
+    /o/oauth2/revoke?token=%s''' % login_session['access_token']
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
-    print 'result is '
-    print result
+    print('result is ')
+    print(result)
     if result['status'] == '200':
         del login_session['access_token']
         del login_session['gplus_id']
@@ -140,92 +155,108 @@ def gdisconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
     else:
-        response = make_response(json.dumps('Failed to revoke token for given user.', 400))
+        response = make_response(json.dumps(
+            'Failed to revoke token for given user.', 400))
         response.headers['Content-Type'] = 'application/json'
         return response
+# default route for main page
+
 
 @app.route('/')
 @app.route('/index')
 def mainPage():
-	logged = 'username' in login_session 
-	leagues = session.query(League).all()
-	latest_teams = session.query(Team).order_by(Team.id.desc()).limit(2)
-	return render_template('main.html', leagues=leagues, teams = latest_teams, logged=logged)
+    logged = 'username' in login_session
+    leagues = session.query(League).all()
+    latest_teams = session.query(Team).order_by(Team.id.desc()).limit(2)
+    return render_template('main.html', leagues=leagues,
+                           teams=latest_teams, logged=logged)
+
+# api endpoint responds with json format
+
 
 @app.route('/json')
 def jsonTeams():
-	teams = session.query(Team).all()
-	return(jsonify(AllTeams=[team.serialize for team in teams]))
+    teams = session.query(Team).all()
+    return(jsonify(AllTeams=[team.serialize for team in teams]))
+
+# league page
 
 
 @app.route('/league/<int:league_id>')
 def leaguePage(league_id):
-	logged = 'username' in login_session
-	leagues = session.query(League).all()
-	league = session.query(League).filter_by(id = league_id).first()
-	teams = session.query(Team).filter_by(league_id = league_id).all()
-	print (league.name)
-	return render_template('league_page.html',leagues=leagues,league = league, teams = teams)
+    leagues = session.query(League).all()
+    league = session.query(League).filter_by(id=league_id).first()
+    teams = session.query(Team).filter_by(league_id=league_id).all()
+    print(league.name)
+    return render_template('league_page.html', leagues=leagues,
+                           league=league, teams=teams)
+# team page
+
 
 @app.route('/team/<int:team_id>')
 def teamPage(team_id):
-	logged = 'username' in login_session
-	team = session.query(Team).filter_by(id = team_id).first()
-	return render_template('team_page.html', logged=logged , team = team )
+    logged = 'username' in login_session
+    team = session.query(Team).filter_by(id=team_id).first()
+    return render_template('team_page.html', logged=logged, team=team)
 
-@app.route('/new_team', methods = ['GET','POST'])
+# page for adding new team
+
+
+@app.route('/new_team', methods=['GET', 'POST'])
 def newTeam():
-	if request.method == 'POST':
-		new_team = Team(name = request.form['title'], info = request.form['info'], league_id=int(request.form['league']))
-		session.add(new_team)
-		session.commit()
-		return redirect(url_for('mainPage'))
-	else :
-		logged = 'username' in login_session
-		if not logged :
-			return redirect(url_for('showLogin'))
-		leagues = session.query(League).all()
-		return render_template('new_team.html', leagues=leagues)
+    if request.method == 'POST':
+        new_team = Team(name=request.form['title'],
+                        info=request.form['info'], league_id=int(
+            request.form['league']))
+        session.add(new_team)
+        session.commit()
+        return redirect(url_for('mainPage'))
+    else:
+        logged = 'username' in login_session
+        if not logged:
+            return redirect(url_for('showLogin'))
+        leagues = session.query(League).all()
+        return render_template('new_team.html', leagues=leagues)
+
+# page for editing team
 
 
-@app.route('/edit_team/<int:team_id>', methods=['GET','POST'])
+@app.route('/edit_team/<int:team_id>', methods=['GET', 'POST'])
 def editTeam(team_id):
-	team = session.query(Team).filter_by(id = team_id).first()
-	if request.method == 'POST' :
-		team.name = request.form['title']
-		team.info = request.form['info']
-		team.league_id = int(request.form['league'])
-		session.add(team)
-		session.commit()
-		return redirect(url_for('teamPage', team_id = team_id))
-	else :
-		logged = 'username' in login_session
-		if not logged :
-			return redirect(url_for('showLogin'))
-		leagues = session.query(League).all()
-		return render_template('edit_team.html',leagues = leagues, team = team)
+    team = session.query(Team).filter_by(id=team_id).first()
+    if request.method == 'POST':
+        team.name = request.form['title']
+        team.info = request.form['info']
+        team.league_id = int(request.form['league'])
+        session.add(team)
+        session.commit()
+        return redirect(url_for('teamPage', team_id=team_id))
+    else:
+        logged = 'username' in login_session
+        if not logged:
+            return redirect(url_for('showLogin'))
+        leagues = session.query(League).all()
+        return render_template('edit_team.html', leagues=leagues, team=team)
 
 
-
-
-@app.route('/delete_team/<int:team_id>', methods=['GET','POST'])
+# page for deleting team
+@app.route('/delete_team/<int:team_id>', methods=['GET', 'POST'])
 def deleteTeam(team_id):
-	team = session.query(Team).filter_by(id = team_id).first()
-	if request.method == 'POST':
-		team = session.query(Team).filter_by(id = team_id).first()
-		session.delete(team)
-		session.commit()
-		return redirect(url_for('mainPage'))
-	else :
-		logged = 'username' in login_session
-		if not logged :
-			return redirect(url_for('showLogin'))
-		leagues = session.query(League).all()
-		return render_template('delete_team.html',leagues = leagues, team = team)
+    team = session.query(Team).filter_by(id=team_id).first()
+    if request.method == 'POST':
+        team = session.query(Team).filter_by(id=team_id).first()
+        session.delete(team)
+        session.commit()
+        return redirect(url_for('mainPage'))
+    else:
+        logged = 'username' in login_session
+        if not logged:
+            return redirect(url_for('showLogin'))
+        leagues = session.query(League).all()
+        return render_template('delete_team.html', leagues=leagues, team=team)
 
 
-
-
+# now it's time to run the application
 if __name__ == '__main__':
     app.debug = True
     app.run(host='0.0.0.0', port=8000)
