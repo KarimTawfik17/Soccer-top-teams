@@ -20,16 +20,15 @@ class Team(Base):
     league_id = Column(Integer, ForeignKey(League.id))
     league = relationship(League)
 
-    # @property
-    # def serialize(self):
-    #     return {
-    #         'name': self.name,
-    #         'id': self.id,
-    #         'price': self.price,
-    #         'description': self.description,
-    #         'course': self.course
-    #     }
+    @property
+    def serialize(self):
+        return {
+            'name': self.name,
+            'id': self.id,
+            'info': self.info,
+            'league': self.league.name,
+        }
 
 
-engine = create_engine('sqlite:///restaurantmenu.db')
+engine = create_engine('sqlite:///teams.db')
 Base.metadata.create_all(engine)

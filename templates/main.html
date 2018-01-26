@@ -11,15 +11,17 @@
 	<nav>
 		<h1>leagues</h1>
 		<ul>
-			<li>english</li>
-			<li>spanish</li>
+			{% for league in leagues %}
+			<li>{{ league.name }}</li>
+			{% endfor %}
 		</ul>
 	</nav>
 	<section>
 		<h1>latest items</h1>
 		<ul>
-			<li>real</li>
-			<li>barca</li>
+			{% for team in teams %}
+			<li>{{ team.name }}</li>
+			{% endfor %}
 		</ul>
 	</section>
 

@@ -16,10 +16,11 @@
 		</ul>
 	</nav>
 	<section>
-		<h1>spanish</h1>
+		<h1>{{ league.name }}</h1>
 		<ul>
-			<li>real</li>
-			<li>barca</li>
+			{% for team in teams %}
+			<li>{{ team.name }}</li>
+			{% endfor %}
 		</ul>
 	</section>
 
