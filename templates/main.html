@@ -16,18 +16,18 @@
 		<h1>leagues</h1>
 		<ul>
 			{% for league in leagues %}
-			<li>{{ league.name }}</li>
+			<li><a href="{{url_for('leaguePage', league_id=league.id)}}">{{ league.name }}</a></li>
 			{% endfor %}
 		</ul>
 	</nav>
 	<section>
 		<h1>latest items</h1>
 		{% if logged : %}
-		<h2>Add Team</h2>
+		<h2><a href="{{url_for('newTeam')}}">Add Team</a></h2>
 		{% endif %}
 		<ul>
 			{% for team in teams %}
-			<li>{{ team.name }}</li>
+			<li><a href="{{url_for('teamPage', team_id=team.id)}}">{{ team.name }}</a></li>
 			{% endfor %}
 		</ul>
 	</section>

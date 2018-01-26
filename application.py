@@ -159,10 +159,11 @@ def jsonTeams():
 @app.route('/league/<int:league_id>')
 def leaguePage(league_id):
 	logged = 'username' in login_session
+	leagues = session.query(League).all()
 	league = session.query(League).filter_by(id = league_id).first()
 	teams = session.query(Team).filter_by(league_id = league_id).all()
 	print (league.name)
-	return render_template('league_page.html',league = league, teams = teams)
+	return render_template('league_page.html',leagues=leagues,league = league, teams = teams)
 
 @app.route('/team/<int:team_id>')
 def teamPage(team_id):

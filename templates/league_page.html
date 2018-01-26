@@ -5,14 +5,19 @@
 </head>
 <body>
 	<header>
-		<h1>Soccer Top Teams</h1>
-		<button>login</button>
+		<h1><a href="{{url_for('mainPage')}}">Soccer Top Teams</a></h1>
+		{% if logged : %}
+		<h2><a href="{{url_for('gdisconnect')}}">logout</a></h2>
+		{% else : %}
+		<h2><a href="{{url_for('showLogin')}}">login</a></h2>
+		{% endif %}
 	</header>
 	<nav>
 		<h1>leagues</h1>
 		<ul>
-			<li>english</li>
-			<li>spanish</li>
+			{% for league in leagues %}
+			<li><a href="{{url_for('leaguePage', league_id=league.id)}}">{{ league.name }}</a></li>
+			{% endfor %}
 		</ul>
 	</nav>
 	<section>
