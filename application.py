@@ -2,7 +2,7 @@ from flask import Flask, render_template
 from flask import request, redirect, url_for, jsonify, flash
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database_setup import Base, League, Team
+from database_setup import Base, League, Team, User
 
 # imports for Authentication & Authorization
 from flask import session as login_session
@@ -26,6 +26,17 @@ session = DBSession()
 app = Flask(__name__)
 app.secret_key = ''.join(random.choice(
     string.ascii_uppercase + string.digits) for i in range(48))
+
+
+def getUserdId(name, mail):
+    try:
+        user = session.query(User).filter_by(mail=mail).one()
+    except:
+        user = User(name=name, mail=mail)
+        session.add(user)
+        session.commit()
+        user = session.query(User).filter_by(mail=mail).one()
+    return user.id
 
 
 # default route for logging page
@@ -112,6 +123,8 @@ def gconnect():
     login_session['username'] = data['name']
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
+    login_session['user_id'] = getUserdId(login_session['username'],
+                                          login_session['email'])
 
     output = ''
     output += '<h1>Welcome, '
@@ -203,6 +216,7 @@ def teamPage(team_id):
 def newTeam():
     if request.method == 'POST':
         new_team = Team(name=request.form['title'],
+                        user_id=login_session['user_id'],
                         info=request.form['info'], league_id=int(
             request.form['league']))
         session.add(new_team)
@@ -231,6 +245,8 @@ def editTeam(team_id):
         logged = 'username' in login_session
         if not logged:
             return redirect(url_for('showLogin'))
+        if login_session['user_id'] != team.user_id:
+            return "<h1> this team added by another user !!!! </h1>"
         leagues = session.query(League).all()
         return render_template('edit_team.html', leagues=leagues, team=team)
 
@@ -248,8 +264,9 @@ def deleteTeam(team_id):
         logged = 'username' in login_session
         if not logged:
             return redirect(url_for('showLogin'))
-        leagues = session.query(League).all()
-        return render_template('delete_team.html', leagues=leagues, team=team)
+        if login_session['user_id'] != team.user_id:
+            return "<h1> this team added by another user !!!! </h1>"
+        return render_template('delete_team.html', team=team)
 
 
 # now it's time to run the application

@@ -13,6 +13,14 @@ class League(Base):
     id = Column(Integer, primary_key=True)
 
 
+# create user table
+class User(Base):
+    __tablename__ = 'user'
+    name = Column(String(80), nullable=False)
+    id = Column(Integer, primary_key=True)
+    mail = Column(String(80), nullable=False)
+
+
 # create team table
 class Team(Base):
     __tablename__ = 'team'
@@ -21,6 +29,8 @@ class Team(Base):
     info = Column(String(500))
     league_id = Column(Integer, ForeignKey(League.id))
     league = relationship(League)
+    user_id = Column(Integer, ForeignKey(User.id))
+    user = relationship(User)
 
 
 # add serialization property for json responses
@@ -32,6 +42,10 @@ class Team(Base):
             'info': self.info,
             'league': self.league.name,
         }
+
+
+
+
 
 
 engine = create_engine('sqlite:///teams.db')
