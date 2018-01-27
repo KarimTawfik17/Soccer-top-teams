@@ -221,6 +221,10 @@ def teamPage(team_id):
 # page for adding new team
 @app.route('/new_team', methods=['GET', 'POST'])
 def newTeam():
+    authenticated = 'username' in login_session
+    if not authenticated:
+        return redirect(url_for('showLogin'))
+
     if request.method == 'POST':
         new_team = Team(name=request.form['title'],
                         user_id=login_session['user_id'],
@@ -230,9 +234,6 @@ def newTeam():
         session.commit()
         return redirect(url_for('mainPage'))
     else:
-        logged = 'username' in login_session
-        if not logged:
-            return redirect(url_for('showLogin'))
         leagues = session.query(League).all()
         return render_template('new_team.html', leagues=leagues)
 
@@ -240,7 +241,13 @@ def newTeam():
 # page for editing team
 @app.route('/edit_team/<int:team_id>', methods=['GET', 'POST'])
 def editTeam(team_id):
+    authenticated = 'username' in login_session
     team = session.query(Team).filter_by(id=team_id).first()
+    authorized = login_session['user_id'] == team.user_id
+    if not authenticated:
+        return redirect(url_for('showLogin'))
+    if not authorized:
+        return "<h1> this team added by another user !!!! </h1>"
     if request.method == 'POST':
         team.name = request.form['title']
         team.info = request.form['info']
@@ -249,11 +256,6 @@ def editTeam(team_id):
         session.commit()
         return redirect(url_for('teamPage', team_id=team_id))
     else:
-        logged = 'username' in login_session
-        if not logged:
-            return redirect(url_for('showLogin'))
-        if login_session['user_id'] != team.user_id:
-            return "<h1> this team added by another user !!!! </h1>"
         leagues = session.query(League).all()
         return render_template('edit_team.html', leagues=leagues, team=team)
 
@@ -261,18 +263,19 @@ def editTeam(team_id):
 # page for deleting team
 @app.route('/delete_team/<int:team_id>', methods=['GET', 'POST'])
 def deleteTeam(team_id):
+    authenticated = 'username' in login_session
     team = session.query(Team).filter_by(id=team_id).first()
+    authorized = login_session['user_id'] == team.user_id
+    if not authenticated:
+        return redirect(url_for('showLogin'))
+    if not authorized:
+        return "<h1> this team added by another user !!!! </h1>"
     if request.method == 'POST':
         team = session.query(Team).filter_by(id=team_id).first()
         session.delete(team)
         session.commit()
         return redirect(url_for('mainPage'))
     else:
-        logged = 'username' in login_session
-        if not logged:
-            return redirect(url_for('showLogin'))
-        if login_session['user_id'] != team.user_id:
-            return "<h1> this team added by another user !!!! </h1>"
         return render_template('delete_team.html', team=team)
 
 
