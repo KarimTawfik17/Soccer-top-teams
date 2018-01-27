@@ -185,11 +185,18 @@ def mainPage():
                            teams=latest_teams, logged=logged)
 
 
-# api endpoint responds with json format
+# api endpoints responds with json format
+
 @app.route('/json')
-def jsonTeams():
+def jsonAllTeams():
     teams = session.query(Team).all()
     return(jsonify(AllTeams=[team.serialize for team in teams]))
+
+
+@app.route('/team/<int:team_id>/json')
+def jsonTeam(team_id):
+    team = session.query(Team).filter_by(id=team_id).first()
+    return(jsonify(team.serialize))
 
 
 # league page

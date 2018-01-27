@@ -41,11 +41,8 @@ class Team(Base):
             'id': self.id,
             'info': self.info,
             'league': self.league.name,
+            'user': self.user.name
         }
-
-
-
-
 
 
 engine = create_engine('sqlite:///teams.db')
